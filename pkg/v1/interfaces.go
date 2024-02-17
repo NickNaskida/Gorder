@@ -7,7 +7,7 @@ type RepoInterface interface {
 
 	Get(id string) (models.Order, error)
 
-	Update(models.Order) error
+	Update(models.Order) (models.Order, error)
 
 	Delete(id string) error
 }
@@ -17,7 +17,7 @@ type UseCaseInterface interface {
 
 	Get(id string) (models.Order, error)
 
-	Update(models.Order) error
+	Update(models.Order) (models.Order, error)
 
 	Delete(id string) error
 }

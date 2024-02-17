@@ -17,6 +17,10 @@ func New(db *gorm.DB) interfaces.RepoInterface {
 // Create a new order in the database
 func (repo *Repo) Create(order models.Order) (models.Order, error) {
 	err := repo.db.Create(&order).Error
+	if err != nil {
+		return models.Order{}, err
+	}
+
 	return order, err
 }
 
@@ -24,12 +28,21 @@ func (repo *Repo) Create(order models.Order) (models.Order, error) {
 func (repo *Repo) Get(OrderID string) (models.Order, error) {
 	var order models.Order
 	err := repo.db.Where("OrderId = ?", OrderID).First(&order).Error
+	if err != nil {
+		return models.Order{}, err
+	}
+
 	return order, err
 }
 
 // Update an order in the database
-func (repo *Repo) Update(order models.Order) error {
-	return repo.db.Save(&order).Error
+func (repo *Repo) Update(order models.Order) (models.Order, error) {
+	err := repo.db.Save(&order).Error
+	if err != nil {
+		return models.Order{}, err
+	}
+
+	return order, err
 }
 
 // Delete an order from the database
