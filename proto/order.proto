@@ -2,21 +2,22 @@ syntax = "proto3";
 option go_package = "./proto";
 
 service OrderService {
-  rpc GetOrder(GetOrderRequest) returns (GetOrderResponse) {};
-  rpc CreateOrder(CreateOrderRequest) returns (CreateOrderResponse) {};
-  rpc UpdateOrder(UpdateOrderRequest) returns (UpdateOrderResponse) {};
-  rpc DeleteOrder(DeleteOrderRequest) returns (DeleteOrderResponse) {};
+  rpc GetOrder(GetOrderRequest) returns (OrderResponse) {};
+  rpc CreateOrder(CreateOrderRequest) returns (OrderResponse) {};
+  rpc UpdateOrder(UpdateOrderRequest) returns (OrderResponse) {};
+  rpc DeleteOrder(DeleteOrderRequest) returns (SuccessResponse) {};
+}
+
+message OrderResponse {
+  string id = 1;
+  string order_id = 2;
+  string name = 3;
+  string description = 4;
+  int32 price = 5;
 }
 
 message GetOrderRequest {
-  string id = 1;
-}
-
-message GetOrderResponse {
-  string id = 1;
-  string name = 2;
-  string description = 3;
-  int32 price = 4;
+  string order_id = 1;
 }
 
 message CreateOrderRequest {
@@ -25,31 +26,17 @@ message CreateOrderRequest {
   int32 price = 3;
 }
 
-message CreateOrderResponse {
-  string id = 1;
-  string name = 2;
-  string description = 3;
-  int32 price = 4;
-}
-
 message UpdateOrderRequest {
-  string id = 1;
-  string name = 2;
-  string description = 3;
-  int32 price = 4;
-}
-
-message UpdateOrderResponse {
-  string id = 1;
+  string order_id = 1;
   string name = 2;
   string description = 3;
   int32 price = 4;
 }
 
 message DeleteOrderRequest {
-  string id = 1;
+  string order_id = 1;
 }
 
-message DeleteOrderResponse {
-  string id = 1;
+message SuccessResponse {
+  string message = 1;
 }
