@@ -1,4 +1,4 @@
-package reposiroty
+package repo
 
 import (
 	"github.com/NickNaskida/Gorder/internal/models"
