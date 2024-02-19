@@ -18,7 +18,7 @@ func New(repo interfaces.RepoInterface) interfaces.UseCaseInterface {
 // Create creates a new order in the database from supplied order argument
 func (uc *UseCase) Create(order models.Order) (models.Order, error) {
 	if _, err := uc.repo.Get(order.OrderId); !errors.Is(err, gorm.ErrRecordNotFound) {
-		return models.Order{}, errors.New("no such user with the id supplied")
+		return models.Order{}, errors.New("no such order with the id supplied")
 	}
 	return uc.repo.Create(order)
 }
@@ -40,19 +40,21 @@ func (uc *UseCase) Get(id string) (models.Order, error) {
 
 // Update updates an order in the database using the supplied order argument
 func (uc *UseCase) Update(updateOrder models.Order) (models.Order, error) {
-	var updatedOrder models.Order
+	var order models.Order
 	var err error
 
-	if _, err = uc.repo.Get(updateOrder.OrderId); err != nil {
-		return models.Order{}, errors.New("no such order with the id supplied")
+	_, err = uc.repo.Update(updateOrder)
+	if err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return models.Order{}, errors.New("no such order with the order_id supplied")
+		}
 	}
 
-	updatedOrder, err = uc.repo.Update(updateOrder)
-	if err != nil {
+	if order, err = uc.repo.Get(updateOrder.OrderId); err != nil {
 		return models.Order{}, err
 	}
 
-	return updatedOrder, nil
+	return order, nil
 }
 
 // Delete deletes an order from the database using the supplied id
@@ -61,7 +63,7 @@ func (uc *UseCase) Delete(id string) error {
 
 	if _, err = uc.repo.Get(id); err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
-			return errors.New("no such order with the id supplied")
+			return errors.New("no such order with the order_id supplied")
 		}
 		return err
 	}

@@ -4,6 +4,8 @@ import (
 	"context"
 	"errors"
 	"github.com/NickNaskida/Gorder/internal/models"
+	"github.com/google/uuid"
+	"strconv"
 
 	interfaces "github.com/NickNaskida/Gorder/pkg/v1"
 	pb "github.com/NickNaskida/Gorder/proto"
@@ -16,7 +18,8 @@ type OrderServStruct struct {
 }
 
 func (srv *OrderServStruct) transformCreateOrderRPC(req *pb.CreateOrderRequest) models.Order {
-	return models.Order{Name: req.GetName(), Description: req.GetDescription(), Price: req.GetPrice()}
+	orderId := uuid.New()
+	return models.Order{OrderId: orderId.String(), Name: req.GetName(), Description: req.GetDescription(), Price: req.GetPrice()}
 }
 
 func (srv *OrderServStruct) transformUpdateOrderRPC(req *pb.UpdateOrderRequest) models.Order {
@@ -24,7 +27,7 @@ func (srv *OrderServStruct) transformUpdateOrderRPC(req *pb.UpdateOrderRequest) 
 }
 
 func (srv *OrderServStruct) transformOrderModel(order models.Order) *pb.OrderResponse {
-	return &pb.OrderResponse{Id: string(order.ID), OrderId: order.OrderId, Name: order.Name, Description: order.Description, Price: order.Price}
+	return &pb.OrderResponse{Id: strconv.Itoa(int(order.ID)), OrderId: order.OrderId, Name: order.Name, Description: order.Description, Price: order.Price}
 }
 
 func NewServer(grpcServer *grpc.Server, usecase interfaces.UseCaseInterface) {
@@ -35,8 +38,10 @@ func NewServer(grpcServer *grpc.Server, usecase interfaces.UseCaseInterface) {
 // CreateOrder function creates an order with the supplied data from CreateOrderRequest message of proto
 func (srv *OrderServStruct) CreateOrder(ctx context.Context, req *pb.CreateOrderRequest) (*pb.OrderResponse, error) {
 	data := srv.transformCreateOrderRPC(req)
-	if err := data.Validate(); err != nil {
-		return &pb.OrderResponse{}, err
+	if data.Name == "" || data.Price == 0 {
+		return &pb.OrderResponse{}, errors.New("name and price are required")
+	} else if data.Price < 0 {
+		return &pb.OrderResponse{}, errors.New("price cannot be negative")
 	}
 
 	order, err := srv.useCase.Create(data)
@@ -51,7 +56,7 @@ func (srv *OrderServStruct) CreateOrder(ctx context.Context, req *pb.CreateOrder
 func (srv *OrderServStruct) GetOrder(ctx context.Context, req *pb.GetOrderRequest) (*pb.OrderResponse, error) {
 	orderId := req.GetOrderId()
 	if orderId == "" {
-		return &pb.OrderResponse{}, errors.New("OrderId is required")
+		return &pb.OrderResponse{}, errors.New("order_id is required")
 	}
 
 	order, err := srv.useCase.Get(orderId)
@@ -65,8 +70,8 @@ func (srv *OrderServStruct) GetOrder(ctx context.Context, req *pb.GetOrderReques
 // UpdateOrder function updates an order in the database using the supplied data from UpdateOrderRequest message of proto
 func (srv *OrderServStruct) UpdateOrder(ctx context.Context, req *pb.UpdateOrderRequest) (*pb.OrderResponse, error) {
 	data := srv.transformUpdateOrderRPC(req)
-	if err := data.Validate(); err != nil {
-		return &pb.OrderResponse{}, err
+	if data.OrderId == "" {
+		return &pb.OrderResponse{}, errors.New("order_id is required")
 	}
 
 	order, err := srv.useCase.Update(data)
@@ -81,7 +86,7 @@ func (srv *OrderServStruct) UpdateOrder(ctx context.Context, req *pb.UpdateOrder
 func (srv *OrderServStruct) DeleteOrder(ctx context.Context, req *pb.DeleteOrderRequest) (*pb.SuccessResponse, error) {
 	orderId := req.GetOrderId()
 	if orderId == "" {
-		return &pb.SuccessResponse{}, errors.New("OrderId is required")
+		return &pb.SuccessResponse{}, errors.New("order_id is required")
 	}
 
 	err := srv.useCase.Delete(orderId)

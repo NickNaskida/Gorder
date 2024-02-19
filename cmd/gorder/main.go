@@ -9,6 +9,7 @@ import (
 	repo "github.com/NickNaskida/Gorder/pkg/v1/reposiroty"
 	"github.com/NickNaskida/Gorder/pkg/v1/usecase"
 	"google.golang.org/grpc"
+	"google.golang.org/grpc/reflection"
 	"gorm.io/gorm"
 	"log"
 	"net"
@@ -20,19 +21,22 @@ func main() {
 	migrations(db)
 
 	// add a listener address
-	lis, err := net.Listen("tcp", ":8080")
+	listener, err := net.Listen("tcp", ":8080")
 	if err != nil {
 		log.Fatalf("ERROR STARTING THE SERVER : %v", err)
 	}
 
 	// start the grpc server
 	grpcServer := grpc.NewServer()
+	reflection.Register(grpcServer)
 
 	orderUseCase := initOrderServer(db)
 	handler.NewServer(grpcServer, orderUseCase)
 
 	// start serving to the address
-	log.Fatal(grpcServer.Serve(lis))
+	if err = grpcServer.Serve(listener); err != nil {
+		log.Fatalf("ERROR STARTING THE SERVER : %v", err)
+	}
 }
 
 func initOrderServer(db *gorm.DB) interfaces.UseCaseInterface {
