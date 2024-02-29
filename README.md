@@ -1,4 +1,4 @@
-# GoTrim
+# GoOrder
 
 A simple web API service for shortening URLs written in Go and Gin.
 
